@@ -10,7 +10,7 @@ main proc
      mov ax,@data
      mov ds,ax
      
-     mov ah,2
+     mov ah, 
      add msg,48
      mov dl,msg
      int 21h 

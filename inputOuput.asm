@@ -14,7 +14,7 @@ main proc
     int 21h          ; Call DOS interrupt to read a character
     mov bh, al       ; Move the input character to bh register
 
-     mov ah,2
+     mov ah,2  
      mov dl,10
      int 21h
      mov dl,13
