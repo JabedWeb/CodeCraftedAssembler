@@ -1,12 +1,12 @@
 
-/*
+
 
 #include <iostream>
 using namespace std;
 
 bool isValidSudoku(int board[9][9]) {
     bool row[9][9] = {false}, col[9][9] = {false}, blk[9][9] = {false};
-
+    
     for (int i = 0; i < 9; ++i) {
         for (int j = 0; j < 9; ++j) {
             int num = board[i][j];
@@ -33,4 +33,3 @@ int main() {
 }
 
 
-*/
