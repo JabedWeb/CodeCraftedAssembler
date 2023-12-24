@@ -7,7 +7,7 @@ print_msg MACRO msg
     int 21h
 ENDM
 .data
-    arr db 10 dup(?)
+    arr db 100 dup(?)
     i db ?
     newline db 10, 13, '$'
     mesg db 'Enter the size of array: $'

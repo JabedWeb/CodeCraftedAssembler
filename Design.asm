@@ -14,9 +14,12 @@ ENDM
 .data
     arr db 81 dup(?)  ; Array to hold 81 single-digit numbers
     i db 0
-    newline db 10, 13, '$'
-    mesg1 db 'Enter 81 elements of the array (1-9): $'
-    mesg2 db 'The elements of the array in 9x9 format: $'
+    welcome db '                       W E L C O M E  T O  S U D O K U                         $'
+    newline db 10, 13, '$' 
+    border db '-------------------------$'
+    border2 db '| $'
+    mesg1 db 'Enter 81 elements of the Sudoku  $'
+    mesg2 db 'The elements of the Sudoku What you input: $'
 
 .code
 main proc
@@ -24,7 +27,11 @@ main proc
     mov ds, ax
 
     ; Get 81 array elements with newline after every 9 elements
+    print_msg welcome
+    print_msg newline
+    print_msg newline
     print_msg mesg1
+    print_msg newline
     print_msg newline
     mov i, 0
     mov si, offset arr
@@ -54,7 +61,9 @@ end_input:
 
     ; Print array elements in 9x9 format
     print_msg newline
+    print_msg newline
     print_msg mesg2
+    print_msg newline
     print_msg newline
     mov i, 0
     mov si, offset arr
@@ -62,6 +71,7 @@ print_loop:
     mov dl, [si]       ; Load array element
     mov ah, 2
     int 21h            ; Print character
+    print_msg border2  ; Print border
     inc si
     inc i
     cmp i, 81
@@ -76,6 +86,8 @@ check_newline:
     cmp ah, 0          ; Check if remainder is 0
     JNE print_loop     ; If not, continue printing
     print_msg newline  ; Print newline after every 9 elements
+    print_msg border   ; Print border
+    print_msg newline  ; Print newline
     JMP print_loop
 
     ; Exit program
