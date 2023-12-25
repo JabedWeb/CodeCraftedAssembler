@@ -100,13 +100,13 @@ space db '                                                                     $
 
 
 start:
-call printboard ;603 line
-call enterkey ;543 line
+call printboard 
+call enterkey 
 call enterkey
 
 mov ah, 09h
 mov bl, 10
-mov cx, 68			        ; set color
+mov cx, 68			    
 int 10h
 
 mov dx, offset instructions
@@ -119,8 +119,8 @@ mov bh, 0
 int 10h
 mov ah, 2 
 mov bh, 0 
-mov dl, 10 ;here dl is the column
-mov dh, 3 ;here dh is the row
+mov dl, 10 
+mov dh, 3 
 int 10h
 mov rowcount, 3
 

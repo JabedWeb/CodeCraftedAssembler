@@ -7,18 +7,26 @@
 ;.stack 100h     
 
 .model tiny
-   org 100h
+   org 100h 
+   
+CAPTURE_INPUT MACRO index
+    mov ah, 01h
+    int 21h
+    mov userInputs[index], al
+ENDM
+
+   
+   
+   
 .data
 border db '+---+---+---+$'
 
 row1a db '2 | 1 |   $'
 row2a db '1 |   |   $'
 row3a db '  | 2 | 1 $'
-3
-row11 db ?
-row22 db ?
-row23 db ?
-row31 db ?
+
+
+userInputs db 4 dup(?) ; Array to store 4 user inputs
 
 sol1a db '2 | 1 | 3 $'
 sol2a db '1 | 3 | 2 $'
@@ -70,10 +78,7 @@ mov dh, 3 ;here dh is the row
 int 10h
 mov rowcount, 3
 
-a1:
-mov ah, 1
-int 21h
-mov row11, al
+CAPTURE_INPUT 0
 
 
 ask2:
@@ -87,10 +92,7 @@ mov dh, 5
 int 10h
 mov rowcount, 2
 
-a2:
-mov ah, 1
-int  21h
-mov row22, al
+CAPTURE_INPUT 1
 
 ask22:
 mov ah, 3
@@ -103,10 +105,7 @@ mov dh, 5
 int 10h
 mov rowcount, 3
 
-a22:
-mov ah, 1
-int 21h
-mov row23, al
+CAPTURE_INPUT 2
 
 
 ask3:
@@ -120,10 +119,7 @@ mov dh, 7
 int 10h
 mov rowcount, 1
 
-a3:
-mov ah, 1
-int 21h
-mov row31, al
+CAPTURE_INPUT 3
 jmp more
 
 
@@ -341,22 +337,22 @@ printsolboard endp
 validateSudoku proc
 
     ; Compare row11
-    mov al, row11
+    mov al, userInputs[0]
     cmp al, '3'          
     jne invalidSolution
 
     ; Compare row22
-    mov al, row22
+    mov al, userInputs[1]
     cmp al, '3'         
     jne invalidSolution
 
     ; Compare row23
-    mov al, row23
+    mov al, userInputs[2]
     cmp al, '2'     
     jne invalidSolution
 
     ; Compare row31
-    mov al, row31
+    mov al, userInputs[3]
     cmp al, '3'      
     jne invalidSolution
 
