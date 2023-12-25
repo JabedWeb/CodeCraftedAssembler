@@ -9,21 +9,24 @@
 .model tiny
    org 100h
 .data
-border db '+---+---+---+---+---+---+---+---+---+$'
+border db '+---+---+---+$'
 
-row1a db '5 | 3 |   $'
-row2a db '6 |   |   $'
-row3a db '  | 9 | 8 $'
+row1a db '2 | 1 |   $'
+row2a db '1 |   |   $'
+row3a db '  | 2 | 1 $'
+3
+row11 db ?
+row22 db ?
+row23 db ?
+row31 db ?
+
+sol1a db '2 | 1 | 3 $'
+sol2a db '1 | 3 | 2 $'
+sol3a db '3 | 2 | 1 $'
 
 
 
-sol1a db '5 | 3 | 4 $'
-sol2a db '6 | 7 | 2 $'
-sol3a db '1 | 9 | 8 $'
-
-
-
-bwrow db '+-----------------------------------+$'
+bwrow db '+-------------+$'
 borderline db '| $'
 borderline2 db ' | $'
 
@@ -36,12 +39,15 @@ instructions db 'Enter a number at the location of the cursor. Press space for b
 toquit db 'The solution is above. Press any key to quit: $'
 space db '                                                                     $'
 
+
+validMsg db 'Congatulations ! Sudoku is valid.$'
+invalidMsg db 'Sorry ! Sudoku is invalid.$'
 .code
 
 
 start:
-call printboard ;603 line
-call enterkey ;543 line
+call printboard 
+call enterkey 
 call enterkey
 
 mov ah, 09h
@@ -67,27 +73,8 @@ mov rowcount, 3
 a1:
 mov ah, 1
 int 21h
-add rowcount, 1
-cmp rowcount, 9
-jg ask2
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-cmp rowcount, 5
-je next1
-add dl, 3
-mov dh, 3
-int 10h
-jmp a1
+mov row11, al
 
-next1:
-add dl, 7
-mov dh, 3
-int 10h
-add rowcount, 1
-jmp a1
 
 ask2:
 mov ah, 3
@@ -102,29 +89,25 @@ mov rowcount, 2
 
 a2:
 mov ah, 1
+int  21h
+mov row22, al
+
+ask22:
+mov ah, 3
+mov bh, 0
+int 10h
+mov ah, 2
+mov bh, 0
+mov dl, 10
+mov dh, 5
+int 10h
+mov rowcount, 3
+
+a22:
+mov ah, 1
 int 21h
+mov row23, al
 
-add rowcount, 1
-cmp rowcount, 9
-jg ask3
-mov ah, 2
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-cmp rowcount, 4
-je next2
-add dl, 4
-mov dh, 5
-int 10h
-jmp a2
-
-next2:
-add dl, 16
-mov dh, 5
-int 10h
-mov rowcount, 7
-jmp a2
 
 ask3:
 mov ah, 3
@@ -140,288 +123,10 @@ mov rowcount, 1
 a3:
 mov ah, 1
 int 21h
-add rowcount, 1
-cmp rowcount, 9
-jg ask4
-mov ah, 2
-mov bh, 0
-cmp rowcount, 2
-je next3
-cmp rowcount, 8
-je next4
-add dl, 4
-mov dh, 7
-int 10h
-jmp a3
-
-next3:
-add dl, 12
-mov dh, 7
-int 10h
-mov rowcount, 4
-jmp a3
-
-next4:
-add dl, 8
-mov dh, 7
-int 10h
-mov rowcount, 9
-jmp a3
-
-
-ask4:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 6
-mov dh, 9
-int 10h
-mov rowcount, 2
-
-a4:
-mov ah, 1
-int 21h
-add rowcount, 1
-cmp rowcount, 9
-jg ask5
-mov ah, 2
-mov bh, 0
-cmp rowcount, 5
-je next5
-cmp rowcount, 9
-je next6
-add dl, 4
-mov dh, 9
-int 10h
-jmp a4
-
-next5:
-add dl, 8
-mov dh, 9
-int 10h
-mov rowcount, 6
-jmp a4
-
-next6:
-jmp ask5
-
-
-ask5:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 6
-mov dh, 11
-int 10h
-mov rowcount, 2
-
-a5:
-mov ah, 1
-int 21h
-add rowcount, 1
-cmp rowcount, 9
-jg ask6
-mov ah, 2
-mov bh, 0
-cmp rowcount, 4
-je next7
-cmp rowcount, 6
-je next8
-cmp rowcount, 9
-je next9
-add dl, 4
-mov dh, 11
-int 10h
-jmp a5
-
-next7:
-add dl, 8
-mov dh, 11
-int 10h
-mov rowcount, 5
-jmp a5
-
-next8:
-add dl, 8
-mov dh, 11
-int 10h
-mov rowcount, 7
-jmp a5
-
-next9:
-jmp ask6
-
-
-ask6:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 6
-mov dh, 13
-int 10h
-mov rowcount, 2
-
-a6:
-mov ah, 1
-int 21h
-add rowcount, 1
-cmp rowcount, 9
-jg ask7
-mov ah, 2
-mov bh, 0
-cmp rowcount, 5
-je next10
-cmp rowcount, 9
-je next11
-add dl, 4
-mov dh, 13
-int 10h
-jmp a6
-
-next10:
-add dl, 8
-mov dh, 13
-int 10h
-mov rowcount, 6
-jmp a6
-
-next11:
-jmp ask7
-
-
-ask7:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 2
-mov dh, 15
-int 10h
-mov rowcount, 1
-
-a7:
-mov ah, 1
-int 21h
-add rowcount, 1
-cmp rowcount, 9
-jg ask8
-mov ah, 2
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-cmp rowcount, 2
-je next12
-cmp rowcount, 7
-je next13
-add dl, 4
-mov dh, 15
-int 10h
-jmp a7
-
-next12:
-add dl, 8
-mov dh, 15
-int 10h
-mov rowcount, 3
-jmp a7
-
-next13:
-add dl, 12
-mov dh, 15
-int 10h
-mov rowcount, 9
-jmp a7
-
-ask8:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 2
-mov dh, 17
-int 10h
-mov rowcount, 1
-
-a8:
-mov ah, 1
-int 21h
-add rowcount, 1
-cmp rowcount, 9
-jg ask9
-mov ah, 2
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-cmp rowcount, 4
-je next14
-cmp rowcount, 9
-je next15
-add dl, 4
-mov dh, 17
-int 10h
-jmp a8
-
-next14:
-add dl, 16
-mov dh, 17
-int 10h
-mov rowcount, 7
-jmp a8
-
-next15:
-jmp ask9
-
-
-ask9:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 2
-mov dh, 19
-int 10h
-mov rowcount, 1
-
-a9:
-mov ah, 1
-int 21h
-add rowcount, 1
-cmp rowcount, 9
-jg more
-mov ah, 2
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-cmp rowcount, 5
-je next16
-cmp rowcount, 8
-je next17
-add dl, 4
-mov dh, 19
-int 10h
-jmp a9
-
-next16:
-add dl, 8
-mov dh, 19
-int 10h
-mov rowcount, 6
-jmp a9
-
-next17:
+mov row31, al
 jmp more
+
+
 
 
 more:
@@ -454,6 +159,10 @@ solquit:
 call printsolboard
 call enterkey
 call enterkey
+
+
+call validateSudoku
+
 mov ah, 09h
 mov bl, 10
 mov cx, 45				; set color 
@@ -580,7 +289,6 @@ call printborline2
 call enterkey
 call printbwrow
 call enterkey
-call printborline
 
 ret
 printboard endp
@@ -625,9 +333,44 @@ call printborline2
 call enterkey
 call printbwrow
 call enterkey
-call printborline
 
 ret
 printsolboard endp
+
+
+validateSudoku proc
+
+    ; Compare row11
+    mov al, row11
+    cmp al, '3'          
+    jne invalidSolution
+
+    ; Compare row22
+    mov al, row22
+    cmp al, '3'         
+    jne invalidSolution
+
+    ; Compare row23
+    mov al, row23
+    cmp al, '2'     
+    jne invalidSolution
+
+    ; Compare row31
+    mov al, row31
+    cmp al, '3'      
+    jne invalidSolution
+
+    mov dx, offset validMsg
+    jmp validationEnd
+
+invalidSolution:
+    mov dx, offset invalidMsg
+
+validationEnd:
+    mov ah, 09h
+    int 21h
+    ret
+validateSudoku endp
+
 
 end start
