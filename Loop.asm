@@ -11,15 +11,18 @@
 .data
 border db '+---+---+---+$'
 
-row1a db '5 | 3 |   $'
-row2a db '6 |   |   $'
-row3a db '  | 9 | 8 $'
+row1a db '2 | 1 |   $'
+row2a db '1 |   |   $'
+row3a db '  | 2 | 1 $'
+3
+row11 db ?
+row22 db ?
+row23 db ?
+row31 db ?
 
-
-
-sol1a db '5 | 3 | 4 $'
-sol2a db '6 | 7 | 2 $'
-sol3a db '1 | 9 | 8 $'
+sol1a db '2 | 1 | 3 $'
+sol2a db '1 | 3 | 2 $'
+sol3a db '3 | 2 | 1 $'
 
 
 
@@ -36,12 +39,15 @@ instructions db 'Enter a number at the location of the cursor. Press space for b
 toquit db 'The solution is above. Press any key to quit: $'
 space db '                                                                     $'
 
+
+validMsg db 'Congatulations ! Sudoku is valid.$'
+invalidMsg db 'Sorry ! Sudoku is invalid.$'
 .code
 
 
 start:
-call printboard ;603 line
-call enterkey ;543 line
+call printboard 
+call enterkey 
 call enterkey
 
 mov ah, 09h
@@ -67,6 +73,7 @@ mov rowcount, 3
 a1:
 mov ah, 1
 int 21h
+mov row11, al
 
 
 ask2:
@@ -82,29 +89,25 @@ mov rowcount, 2
 
 a2:
 mov ah, 1
+int  21h
+mov row22, al
+
+ask22:
+mov ah, 3
+mov bh, 0
+int 10h
+mov ah, 2
+mov bh, 0
+mov dl, 10
+mov dh, 5
+int 10h
+mov rowcount, 3
+
+a22:
+mov ah, 1
 int 21h
+mov row23, al
 
-add rowcount, 1
-cmp rowcount, 3
-jg ask3
-mov ah, 2
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-cmp rowcount, 4
-je next2
-add dl, 4
-mov dh, 5
-int 10h
-jmp a2
-
-next2:
-add dl, 16
-mov dh, 5
-int 10h
-mov rowcount, 7
-jmp a2
 
 ask3:
 mov ah, 3
@@ -120,7 +123,10 @@ mov rowcount, 1
 a3:
 mov ah, 1
 int 21h
+mov row31, al
 jmp more
+
+
 
 
 more:
@@ -153,6 +159,10 @@ solquit:
 call printsolboard
 call enterkey
 call enterkey
+
+
+call validateSudoku
+
 mov ah, 09h
 mov bl, 10
 mov cx, 45				; set color 
@@ -279,7 +289,6 @@ call printborline2
 call enterkey
 call printbwrow
 call enterkey
-call printborline
 
 ret
 printboard endp
@@ -324,9 +333,44 @@ call printborline2
 call enterkey
 call printbwrow
 call enterkey
-call printborline
 
 ret
 printsolboard endp
+
+
+validateSudoku proc
+
+    ; Compare row11
+    mov al, row11
+    cmp al, '3'          
+    jne invalidSolution
+
+    ; Compare row22
+    mov al, row22
+    cmp al, '3'         
+    jne invalidSolution
+
+    ; Compare row23
+    mov al, row23
+    cmp al, '2'     
+    jne invalidSolution
+
+    ; Compare row31
+    mov al, row31
+    cmp al, '3'      
+    jne invalidSolution
+
+    mov dx, offset validMsg
+    jmp validationEnd
+
+invalidSolution:
+    mov dx, offset invalidMsg
+
+validationEnd:
+    mov ah, 09h
+    int 21h
+    ret
+validateSudoku endp
+
 
 end start
