@@ -100,8 +100,8 @@ space db '                                                                     $
 
 
 start:
-call printboard
-call enterkey
+call printboard ;603 line
+call enterkey ;543 line
 call enterkey
 
 mov ah, 09h
@@ -114,13 +114,13 @@ mov ah, 9
 int 21h
 
 ask1:
-mov ah, 3
+mov ah, 3 
 mov bh, 0
 int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 10
-mov dh, 3
+mov ah, 2 
+mov bh, 0 
+mov dl, 10 ;here dl is the column
+mov dh, 3 ;here dh is the row
 int 10h
 mov rowcount, 3
 
@@ -602,11 +602,11 @@ printboard proc
 mov ax, 0003h 
 int 10h
 
-call enterkey
+call enterkey ; 544 line
 call pwelcome
 call enterkey
 
-call printborder
+call printborder ;578 line
 call enterkey
 call printborline
 
