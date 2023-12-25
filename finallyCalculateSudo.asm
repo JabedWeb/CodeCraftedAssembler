@@ -15,8 +15,23 @@ CAPTURE_INPUT MACRO index
     mov userInputs[index], al
 ENDM
 
+MOVE_CURSOR MACRO column, row
+    mov ah, 02h      ; Function to set cursor position
+    mov bh, 0        ; Page number
+    mov dl, column   ; Column
+    mov dh, row      ; Row
+    int 10h          ; BIOS interrupt for video services
+ENDM
    
-   
+PRINT_COLORED_STRING MACRO msg, color
+    mov ah, 09h
+    mov bl, color
+    mov cx, 1
+    int 10h
+    mov dx, offset msg
+    int 21h
+ENDM
+
    
 .data
 border db '+---+---+---+$'
@@ -71,11 +86,7 @@ ask1:
 mov ah, 3 
 mov bh, 0
 int 10h
-mov ah, 2 
-mov bh, 0 
-mov dl, 10 ;here dl is the column
-mov dh, 3 ;here dh is the row
-int 10h
+MOVE_CURSOR 10, 3
 mov rowcount, 3
 
 CAPTURE_INPUT 0
@@ -85,11 +96,8 @@ ask2:
 mov ah, 3
 mov bh, 0
 int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 6
-mov dh, 5
-int 10h
+MOVE_CURSOR 6, 5
+
 mov rowcount, 2
 
 CAPTURE_INPUT 1
@@ -98,11 +106,7 @@ ask22:
 mov ah, 3
 mov bh, 0
 int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 10
-mov dh, 5
-int 10h
+MOVE_CURSOR 10, 5
 mov rowcount, 3
 
 CAPTURE_INPUT 2
@@ -112,11 +116,7 @@ ask3:
 mov ah, 3
 mov bh, 0
 int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 2
-mov dh, 7
-int 10h
+MOVE_CURSOR 2, 7
 mov rowcount, 1
 
 CAPTURE_INPUT 3
@@ -196,50 +196,31 @@ ret					                ; start new line
 enterkey endp
 
 
-printborline proc
-mov ah,09h
-mov bl,9
-mov cx, 1				; set color
-int 10h
-mov dx, offset borderline		; prepare to print
-mov ah, 9
-int 21h
+printborline proc 
+PRINT_COLORED_STRING borderline,9
 ret
 printborline endp
 
 
+
+
 printborline2 proc
-mov ah,09h
-mov bl,9
-mov cx, 2				; set color
-int 10h
-mov dx, offset borderline2		; prepare to print
-mov ah, 9
-int 21h
+PRINT_COLORED_STRING borderline2,9
 ret
 printborline2 endp
 
 
+
+
 printborder proc
-mov ah,09h
-mov bl,9
-mov cx, 37				; set color
-int 10h
-mov dx, offset border			; prepare to print
-mov ah, 9
-int 21h
+PRINT_COLORED_STRING border,9
 ret
 printborder endp
 
 
 printbwrow proc
-mov ah,09h
-mov bl,4
-mov cx, 37			        ; set color
-int 10h
-mov dx, offset bwrow			; prepare to print
-mov ah, 9
-int 21h
+
+PRINT_COLORED_STRING bwrow,4
 ret
 printbwrow endp
 
