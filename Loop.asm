@@ -7,18 +7,55 @@
 ;.stack 100h     
 
 .model tiny
-   org 100h
+   org 100h 
+   
+CAPTURE_INPUT MACRO index
+    mov ah, 01h
+    int 21h
+    mov userInputs[index], al
+ENDM
+
+MOVE_CURSOR MACRO column, row
+    mov ah, 3 
+    mov bh, 0
+    int 10h
+    mov ah, 02h      ; Function to set cursor position
+    mov bh, 0        ; Page number
+    mov dl, column   ; Column
+    mov dh, row      ; Row
+    int 10h          ; BIOS interrupt for video services
+ENDM
+   
+PRINT_COLORED_STRING MACRO msg, color
+    mov ah, 09h
+    mov bl, color
+    mov cx, 1
+    int 10h
+    mov dx, offset msg
+    int 21h
+ENDM 
+
+PRINT_SHOW_BOARD MACRO rows 
+
+    mov dx, offset rows
+    mov ah, 9
+    int 21h
+
+    call printborline2
+    call enterkey
+    call printbwrow
+    call enterkey
+ENDM    
+   
 .data
 border db '+---+---+---+$'
 
 row1a db '2 | 1 |   $'
 row2a db '1 |   |   $'
 row3a db '  | 2 | 1 $'
-3
-row11 db ?
-row22 db ?
-row23 db ?
-row31 db ?
+
+
+userInputs db 4 dup(?) ; Array to store 4 user inputs
 
 sol1a db '2 | 1 | 3 $'
 sol2a db '1 | 3 | 2 $'
@@ -45,6 +82,8 @@ invalidMsg db 'Sorry ! Sudoku is invalid.$'
 .code
 
 
+
+
 start:
 call printboard 
 call enterkey 
@@ -60,73 +99,21 @@ mov ah, 9
 int 21h
 
 ask1:
-mov ah, 3 
-mov bh, 0
-int 10h
-mov ah, 2 
-mov bh, 0 
-mov dl, 10 ;here dl is the column
-mov dh, 3 ;here dh is the row
-int 10h
-mov rowcount, 3
-
-a1:
-mov ah, 1
-int 21h
-mov row11, al
-
+MOVE_CURSOR 10, 3
+CAPTURE_INPUT 0
 
 ask2:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 6
-mov dh, 5
-int 10h
-mov rowcount, 2
-
-a2:
-mov ah, 1
-int  21h
-mov row22, al
+MOVE_CURSOR 6, 5
+CAPTURE_INPUT 1
 
 ask22:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 10
-mov dh, 5
-int 10h
-mov rowcount, 3
-
-a22:
-mov ah, 1
-int 21h
-mov row23, al
-
+MOVE_CURSOR 10, 5
+CAPTURE_INPUT 2
 
 ask3:
-mov ah, 3
-mov bh, 0
-int 10h
-mov ah, 2
-mov bh, 0
-mov dl, 2
-mov dh, 7
-int 10h
-mov rowcount, 1
-
-a3:
-mov ah, 1
-int 21h
-mov row31, al
+MOVE_CURSOR 2, 7
+CAPTURE_INPUT 3
 jmp more
-
-
 
 
 more:
@@ -200,50 +187,26 @@ ret					                ; start new line
 enterkey endp
 
 
-printborline proc
-mov ah,09h
-mov bl,9
-mov cx, 1				; set color
-int 10h
-mov dx, offset borderline		; prepare to print
-mov ah, 9
-int 21h
+printborline proc 
+PRINT_COLORED_STRING borderline,9
 ret
 printborline endp
 
 
 printborline2 proc
-mov ah,09h
-mov bl,9
-mov cx, 2				; set color
-int 10h
-mov dx, offset borderline2		; prepare to print
-mov ah, 9
-int 21h
+PRINT_COLORED_STRING borderline2,9
 ret
 printborline2 endp
 
 
 printborder proc
-mov ah,09h
-mov bl,9
-mov cx, 37				; set color
-int 10h
-mov dx, offset border			; prepare to print
-mov ah, 9
-int 21h
+PRINT_COLORED_STRING border,9
 ret
 printborder endp
 
 
 printbwrow proc
-mov ah,09h
-mov bl,4
-mov cx, 37			        ; set color
-int 10h
-mov dx, offset bwrow			; prepare to print
-mov ah, 9
-int 21h
+PRINT_COLORED_STRING bwrow,4
 ret
 printbwrow endp
 
@@ -251,44 +214,23 @@ printboard proc
 mov ax, 0003h 
 int 10h
 
-call enterkey ; 544 line
+call enterkey 
 call pwelcome
 call enterkey
 
-call printborder ;578 line
+call printborder
 call enterkey
 call printborline
 
-mov dx, offset row1a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD row1a
 call printborline
 
 
-mov dx, offset row2a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD row2a
 call printborline
 
 
-mov dx, offset row3a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD row3a
 
 ret
 printboard endp
@@ -305,58 +247,32 @@ call printborder
 call enterkey
 call printborline
 
-mov dx, offset sol1a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD sol1a
 call printborline
 
-mov dx, offset sol2a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD sol2a
 call printborline
 
-mov dx, offset sol3a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD sol3a
 
 ret
 printsolboard endp
 
 
 validateSudoku proc
-
-    ; Compare row11
-    mov al, row11
+    mov al, userInputs[0]
     cmp al, '3'          
     jne invalidSolution
 
-    ; Compare row22
-    mov al, row22
+    mov al, userInputs[1]
     cmp al, '3'         
     jne invalidSolution
 
-    ; Compare row23
-    mov al, row23
+    mov al, userInputs[2]
     cmp al, '2'     
     jne invalidSolution
 
-    ; Compare row31
-    mov al, row31
+    mov al, userInputs[3]
     cmp al, '3'      
     jne invalidSolution
 

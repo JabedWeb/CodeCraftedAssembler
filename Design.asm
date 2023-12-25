@@ -1,99 +1,290 @@
 ; Md Jabed Hossen
 ; ID 213902046
 ; Project 1: Sudoku
+; Program to print sudoku board, ask for input, and print new board until user quits the program
 
-.model small
-.stack 100h
+;.model small         
+;.stack 100h     
 
-print_msg MACRO msg
-    mov ah, 9
-    mov dx, OFFSET msg
+.model tiny
+   org 100h 
+   
+CAPTURE_INPUT MACRO index
+    mov ah, 01h
     int 21h
+    mov userInputs[index], al
 ENDM
 
-.data
-    arr db 81 dup(?)  ; Array to hold 81 single-digit numbers
-    i db 0
-    welcome db '                       W E L C O M E  T O  S U D O K U                         $'
-    newline db 10, 13, '$' 
-    border db '-------------------------$'
-    border2 db '| $'
-    mesg1 db 'Enter 81 elements of the Sudoku  $'
-    mesg2 db 'The elements of the Sudoku What you input: $'
-
-.code
-main proc
-    mov ax, @data
-    mov ds, ax
-
-    ; Get 81 array elements with newline after every 9 elements
-    print_msg welcome
-    print_msg newline
-    print_msg newline
-    print_msg mesg1
-    print_msg newline
-    print_msg newline
-    mov i, 0
-    mov si, offset arr
-input_loop:
-    cmp i, 81
-    JE end_input    ; Jump to end_input if 81 elements are read
-    mov ah, 1
-    int 21h         ; Read character
-    cmp al, '1'
-    jb input_loop   ; Skip if less than '1'
-    cmp al, '9'
-    ja input_loop   ; Skip if greater than '9'
-    mov [si], al    ; Store in array
-    inc si
-    inc i
-    mov ah, 0       ; Clear AH for division
-    mov al, i
-    mov bl, 9
-    div bl          ; Divide i by 9
-    cmp ah, 0       ; Check if remainder is 0
-    JNE input_loop  ; If not, continue input
-    cmp i, 81       ; Check if 81 elements are read
-    JE end_input    ; If 81 elements read, skip newline
-    print_msg newline  ; Print newline after every 9 elements
-    JMP input_loop     ; Continue input loop
-end_input:
-
-    ; Print array elements in 9x9 format
-    print_msg newline
-    print_msg newline
-    print_msg mesg2
-    print_msg newline
-    print_msg newline
-    mov i, 0
-    mov si, offset arr
-print_loop:
-    mov dl, [si]       ; Load array element
-    mov ah, 2
-    int 21h            ; Print character
-    print_msg border2  ; Print border
-    inc si
-    inc i
-    cmp i, 81
-    JL check_newline
-    JMP exit
-
-check_newline:
-    mov ah, 0          ; Clear AH for division
-    mov al, i
-    mov bl, 9
-    div bl             ; Divide i by 9
-    cmp ah, 0          ; Check if remainder is 0
-    JNE print_loop     ; If not, continue printing
-    print_msg newline  ; Print newline after every 9 elements
-    print_msg border   ; Print border
-    print_msg newline  ; Print newline
-    JMP print_loop
-
-    ; Exit program
-exit:
-    mov ah, 4ch
+MOVE_CURSOR MACRO column, row
+    mov ah, 3 
+    mov bh, 0
+    int 10h
+    mov ah, 02h      ; Function to set cursor position
+    mov bh, 0        ; Page number
+    mov dl, column   ; Column
+    mov dh, row      ; Row
+    int 10h          ; BIOS interrupt for video services
+ENDM
+   
+PRINT_COLORED_STRING MACRO msg, color
+    mov ah, 09h
+    mov bl, color
+    mov cx, 1
+    int 10h
+    mov dx, offset msg
     int 21h
-main endp
+ENDM 
 
-end main
+PRINT_SHOW_BOARD MACRO rows 
+
+    mov dx, offset rows
+    mov ah, 9
+    int 21h
+
+    call printborline2
+    call enterkey
+    call printbwrow
+    call enterkey
+ENDM    
+   
+.data
+border db '+---+---+---+$'
+
+row1a db '2 | 1 |   $'
+row2a db '1 |   |   $'
+row3a db '  | 2 | 1 $'
+
+
+userInputs db 4 dup(?) ; Array to store 4 user inputs
+
+sol1a db '2 | 1 | 3 $'
+sol2a db '1 | 3 | 2 $'
+sol3a db '3 | 2 | 1 $'
+
+
+
+bwrow db '+-------------+$'
+borderline db '| $'
+borderline2 db ' | $'
+
+again db 'Press any key to try again or press enter to see solution and quit: $'
+welcome db '                       W E L C O M E  T O  S U D O K U                         $'
+count db 1
+one db 1
+rowcount db 1
+instructions db 'Enter a number at the location of the cursor. Press space for blank.$'
+toquit db 'The solution is above. Press any key to quit: $'
+space db '                                                                     $'
+
+
+validMsg db 'Congatulations ! Sudoku is valid.$'
+invalidMsg db 'Sorry ! Sudoku is invalid.$'
+.code
+
+
+start:
+call printboard 
+call enterkey 
+call enterkey
+
+mov ah, 09h
+mov bl, 10
+mov cx, 68			        ; set color
+int 10h
+
+mov dx, offset instructions
+mov ah, 9
+int 21h
+
+ask1:
+MOVE_CURSOR 10, 3
+CAPTURE_INPUT 0
+
+ask2:
+MOVE_CURSOR 6, 5
+CAPTURE_INPUT 1
+
+ask22:
+MOVE_CURSOR 10, 5
+CAPTURE_INPUT 2
+
+ask3:
+MOVE_CURSOR 2, 7
+CAPTURE_INPUT 3
+jmp more
+
+
+more:
+call enterkey
+call enterkey
+call enterkey
+call enterkey
+mov ah, 09h
+mov bl, 10
+mov cx, 67			        ; set color
+int 10h
+mov dx, offset again
+mov ah, 9
+int 21h
+mov ah, 1
+int 21h
+cmp al, 13
+je solquit
+mov ah, 2
+mov bh, 0
+mov dl, 0
+mov dh, 23
+int 10h
+mov dx, offset space
+mov ah, 9
+int 21h
+jmp ask1
+
+solquit:
+call printsolboard
+call enterkey
+call enterkey
+
+
+call validateSudoku
+
+mov ah, 09h
+mov bl, 10
+mov cx, 45				; set color 
+int 10h
+mov dx, offset toquit
+mov ah, 9
+int 21h
+mov ah, 1
+int 21h
+mov ax, 0003h
+int 10h
+mov ah, 4ch
+int 21h
+
+pwelcome proc
+mov ah, 09h
+mov bl, 10
+mov cx, 75
+int 10h
+mov dx, offset welcome
+mov ah, 9
+int 21h
+ret
+pwelcome endp
+
+
+enterkey proc
+mov dx, 10
+mov ah, 2
+int 21h
+mov dx, 13
+mov ah, 2
+int 21h
+ret					                ; start new line
+enterkey endp
+
+
+printborline proc 
+PRINT_COLORED_STRING borderline,9
+ret
+printborline endp
+
+
+printborline2 proc
+PRINT_COLORED_STRING borderline2,9
+ret
+printborline2 endp
+
+
+printborder proc
+PRINT_COLORED_STRING border,9
+ret
+printborder endp
+
+
+printbwrow proc
+PRINT_COLORED_STRING bwrow,4
+ret
+printbwrow endp
+
+printboard proc
+mov ax, 0003h 
+int 10h
+
+call enterkey 
+call pwelcome
+call enterkey
+
+call printborder
+call enterkey
+call printborline
+
+PRINT_SHOW_BOARD row1a
+call printborline
+
+
+PRINT_SHOW_BOARD row2a
+call printborline
+
+
+PRINT_SHOW_BOARD row3a
+
+ret
+printboard endp
+
+printsolboard proc
+mov ax, 0003h
+int 10h
+
+call enterkey
+call pwelcome
+
+call enterkey
+call printborder
+call enterkey
+call printborline
+
+PRINT_SHOW_BOARD sol1a
+call printborline
+
+PRINT_SHOW_BOARD sol2a
+call printborline
+
+PRINT_SHOW_BOARD sol3a
+
+ret
+printsolboard endp
+
+
+validateSudoku proc
+    mov al, userInputs[0]
+    cmp al, '3'          
+    jne invalidSolution
+
+    mov al, userInputs[1]
+    cmp al, '3'         
+    jne invalidSolution
+
+    mov al, userInputs[2]
+    cmp al, '2'     
+    jne invalidSolution
+
+    mov al, userInputs[3]
+    cmp al, '3'      
+    jne invalidSolution
+
+    mov dx, offset validMsg
+    jmp validationEnd
+
+invalidSolution:
+    mov dx, offset invalidMsg
+
+validationEnd:
+    mov ah, 09h
+    int 21h
+    ret
+validateSudoku endp
+
+
+end start

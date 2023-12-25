@@ -16,6 +16,9 @@ CAPTURE_INPUT MACRO index
 ENDM
 
 MOVE_CURSOR MACRO column, row
+    mov ah, 3 
+    mov bh, 0
+    int 10h
     mov ah, 02h      ; Function to set cursor position
     mov bh, 0        ; Page number
     mov dl, column   ; Column
@@ -30,8 +33,29 @@ PRINT_COLORED_STRING MACRO msg, color
     int 10h
     mov dx, offset msg
     int 21h
-ENDM
+ENDM 
 
+PRINT_SHOW_BOARD MACRO rows 
+
+    mov dx, offset rows
+    mov ah, 9
+    int 21h
+
+    call printborline2
+    call enterkey
+    call printbwrow
+    call enterkey
+ENDM    
+
+
+
+
+; END OF  SUDOKU_SIZE_THREE MACRO
+
+; START OF SUDOKU SIZE NINE MACRO
+SUDOKU_SIZE_NINE MACRO
+
+ENDM    
    
 .data
 border db '+---+---+---+$'
@@ -62,13 +86,57 @@ instructions db 'Enter a number at the location of the cursor. Press space for b
 toquit db 'The solution is above. Press any key to quit: $'
 space db '                                                                     $'
 
+select db 'Select a number: 1 ( for 3*3 sudoku ) or 2 (for 9*9 sudoku) $'
 
 validMsg db 'Congatulations ! Sudoku is valid.$'
 invalidMsg db 'Sorry ! Sudoku is invalid.$'
+
+
 .code
 
+main proc
+    mov ax, @data
+    mov ds, ax
 
-start:
+input_loop:
+    ; Display the selection message
+    mov dx, offset select
+    mov ah, 9
+    int 21h
+
+    ; Capture the user's choice
+    mov ah, 1
+    int 21h
+    mov bl, al
+    sub bl, '0'
+
+    ; Decide the action based on user input
+    cmp bl, 1
+    je do_sudoku_size_three
+    cmp bl, 2
+    je do_sudoku_size_nine
+    jmp input_loop  ; Invalid input, loop back
+
+do_sudoku_size_three:
+    ; Call the macro for 3x3 Sudoku
+    SUDOKU_SIZE_THREE
+    jmp end_of_main
+
+do_sudoku_size_nine:
+    ; Call the macro for 9x9 Sudoku
+    SUDOKU_SIZE_NINE
+    jmp end_of_main
+
+end_of_main:
+    ; Cleanup and exit the program
+    mov ax, 4C00h
+    int 21h
+
+endp main
+
+
+SUDOKU_SIZE_THREE MACRO 
+
 call printboard 
 call enterkey 
 call enterkey
@@ -83,46 +151,21 @@ mov ah, 9
 int 21h
 
 ask1:
-mov ah, 3 
-mov bh, 0
-int 10h
 MOVE_CURSOR 10, 3
-mov rowcount, 3
-
 CAPTURE_INPUT 0
 
-
 ask2:
-mov ah, 3
-mov bh, 0
-int 10h
 MOVE_CURSOR 6, 5
-
-mov rowcount, 2
-
 CAPTURE_INPUT 1
 
 ask22:
-mov ah, 3
-mov bh, 0
-int 10h
 MOVE_CURSOR 10, 5
-mov rowcount, 3
-
 CAPTURE_INPUT 2
 
-
 ask3:
-mov ah, 3
-mov bh, 0
-int 10h
 MOVE_CURSOR 2, 7
-mov rowcount, 1
-
 CAPTURE_INPUT 3
 jmp more
-
-
 
 
 more:
@@ -202,14 +245,10 @@ ret
 printborline endp
 
 
-
-
 printborline2 proc
 PRINT_COLORED_STRING borderline2,9
 ret
 printborline2 endp
-
-
 
 
 printborder proc
@@ -219,7 +258,6 @@ printborder endp
 
 
 printbwrow proc
-
 PRINT_COLORED_STRING bwrow,4
 ret
 printbwrow endp
@@ -228,44 +266,23 @@ printboard proc
 mov ax, 0003h 
 int 10h
 
-call enterkey ; 544 line
+call enterkey 
 call pwelcome
 call enterkey
 
-call printborder ;578 line
+call printborder
 call enterkey
 call printborline
 
-mov dx, offset row1a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD row1a
 call printborline
 
 
-mov dx, offset row2a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD row2a
 call printborline
 
 
-mov dx, offset row3a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD row3a
 
 ret
 printboard endp
@@ -282,57 +299,31 @@ call printborder
 call enterkey
 call printborline
 
-mov dx, offset sol1a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD sol1a
 call printborline
 
-mov dx, offset sol2a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD sol2a
 call printborline
 
-mov dx, offset sol3a
-mov ah, 9
-int 21h
-
-call printborline2
-call enterkey
-call printbwrow
-call enterkey
+PRINT_SHOW_BOARD sol3a
 
 ret
 printsolboard endp
 
 
 validateSudoku proc
-
-    ; Compare row11
     mov al, userInputs[0]
     cmp al, '3'          
     jne invalidSolution
 
-    ; Compare row22
     mov al, userInputs[1]
     cmp al, '3'         
     jne invalidSolution
 
-    ; Compare row23
     mov al, userInputs[2]
     cmp al, '2'     
     jne invalidSolution
 
-    ; Compare row31
     mov al, userInputs[3]
     cmp al, '3'      
     jne invalidSolution
@@ -348,6 +339,6 @@ validationEnd:
     int 21h
     ret
 validateSudoku endp
+ENDM    
 
-
-end start
+end main

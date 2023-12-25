@@ -1,37 +1,344 @@
-.model small
-.stack 100h
-.data  
-    arr db 5 dup(?)  ; Define an array of 5 bytes
+; Md Jabed Hossen
+; ID 213902046
+; Project 1: Sudoku
+; Program to print sudoku board, ask for input, and print new board until user quits the program
 
-.code  
-main proc 
+;.model small         
+;.stack 100h     
+
+.model tiny
+   org 100h 
+   
+CAPTURE_INPUT MACRO index
+    mov ah, 01h
+    int 21h
+    mov userInputs[index], al
+ENDM
+
+MOVE_CURSOR MACRO column, row
+    mov ah, 3 
+    mov bh, 0
+    int 10h
+    mov ah, 02h      ; Function to set cursor position
+    mov bh, 0        ; Page number
+    mov dl, column   ; Column
+    mov dh, row      ; Row
+    int 10h          ; BIOS interrupt for video services
+ENDM
+   
+PRINT_COLORED_STRING MACRO msg, color
+    mov ah, 09h
+    mov bl, color
+    mov cx, 1
+    int 10h
+    mov dx, offset msg
+    int 21h
+ENDM 
+
+PRINT_SHOW_BOARD MACRO rows 
+
+    mov dx, offset rows
+    mov ah, 9
+    int 21h
+
+    call printborline2
+    call enterkey
+    call printbwrow
+    call enterkey
+ENDM    
+
+
+
+
+; END OF  SUDOKU_SIZE_THREE MACRO
+
+; START OF SUDOKU SIZE NINE MACRO
+SUDOKU_SIZE_NINE MACRO
+
+ENDM    
+   
+.data
+border db '+---+---+---+$'
+
+row1a db '2 | 1 |   $'
+row2a db '1 |   |   $'
+row3a db '  | 2 | 1 $'
+
+
+userInputs db 4 dup(?) ; Array to store 4 user inputs
+
+sol1a db '2 | 1 | 3 $'
+sol2a db '1 | 3 | 2 $'
+sol3a db '3 | 2 | 1 $'
+
+
+
+bwrow db '+-------------+$'
+borderline db '| $'
+borderline2 db ' | $'
+
+again db 'Press any key to try again or press enter to see solution and quit: $'
+welcome db '                       W E L C O M E  T O  S U D O K U                         $'
+count db 1
+one db 1
+rowcount db 1
+instructions db 'Enter a number at the location of the cursor. Press space for blank.$'
+toquit db 'The solution is above. Press any key to quit: $'
+space db '                                                                     $'
+
+select db 'Select a number: 1 ( for 3*3 sudoku ) or 2 (for 9*9 sudoku) $'
+
+validMsg db 'Congatulations ! Sudoku is valid.$'
+invalidMsg db 'Sorry ! Sudoku is invalid.$'
+
+
+.code
+
+main proc
     mov ax, @data
     mov ds, ax
 
-    ; Input loop to read 5 characters
-    mov si, offset arr  ; Point SI to the start of the array
-    mov cx, 5           ; Set counter to 5
-
 input_loop:
-    mov ah, 1           ; Function 1: Read character from standard input
-    int 21h             ; Call DOS interrupt
-    mov [si], al        ; Store the character in the array
-    inc si              ; Move to the next position in the array
-    loop input_loop     ; Repeat until 5 characters are read
+    ; Display the selection message
+    mov dx, offset select
+    mov ah, 9
+    int 21h
 
-    ; Output loop to display 5 characters
-    mov si, offset arr  ; Reset SI to the start of the array
-    mov cx, 5           ; Reset counter to 5
+    ; Capture the user's choice
+    mov ah, 1
+    int 21h
+    mov bl, al
+    sub bl, '0'
 
-output_loop:
-    mov ah, 2           ; Function 2: Write character to standard output
-    mov dl, [si]        ; Load the character from the array into DL
-    int 21h             ; Call DOS interrupt to output the character
-    inc si              ; Move to the next position in the array
-    loop output_loop    ; Repeat until all characters are displayed
+    ; Decide the action based on user input
+    cmp bl, 1
+    je do_sudoku_size_three
+    cmp bl, 2
+    je do_sudoku_size_nine
+    jmp input_loop  ; Invalid input, loop back
 
-    ; Terminate program
-    mov ah, 4Ch         ; Function 4Ch: Terminate with return code
-    int 21h             ; Call DOS interrupt to terminate the program
-main endp 
+do_sudoku_size_three:
+    ; Call the macro for 3x3 Sudoku
+    SUDOKU_SIZE_THREE
+    jmp end_of_main
+
+do_sudoku_size_nine:
+    ; Call the macro for 9x9 Sudoku
+    SUDOKU_SIZE_NINE
+    jmp end_of_main
+
+end_of_main:
+    ; Cleanup and exit the program
+    mov ax, 4C00h
+    int 21h
+
+endp main
+
+
+SUDOKU_SIZE_THREE MACRO 
+
+call printboard 
+call enterkey 
+call enterkey
+
+mov ah, 09h
+mov bl, 10
+mov cx, 68			        ; set color
+int 10h
+
+mov dx, offset instructions
+mov ah, 9
+int 21h
+
+ask1:
+MOVE_CURSOR 10, 3
+CAPTURE_INPUT 0
+
+ask2:
+MOVE_CURSOR 6, 5
+CAPTURE_INPUT 1
+
+ask22:
+MOVE_CURSOR 10, 5
+CAPTURE_INPUT 2
+
+ask3:
+MOVE_CURSOR 2, 7
+CAPTURE_INPUT 3
+jmp more
+
+
+more:
+call enterkey
+call enterkey
+call enterkey
+call enterkey
+mov ah, 09h
+mov bl, 10
+mov cx, 67			        ; set color
+int 10h
+mov dx, offset again
+mov ah, 9
+int 21h
+mov ah, 1
+int 21h
+cmp al, 13
+je solquit
+mov ah, 2
+mov bh, 0
+mov dl, 0
+mov dh, 23
+int 10h
+mov dx, offset space
+mov ah, 9
+int 21h
+jmp ask1
+
+solquit:
+call printsolboard
+call enterkey
+call enterkey
+
+
+call validateSudoku
+
+mov ah, 09h
+mov bl, 10
+mov cx, 45				; set color 
+int 10h
+mov dx, offset toquit
+mov ah, 9
+int 21h
+mov ah, 1
+int 21h
+mov ax, 0003h
+int 10h
+mov ah, 4ch
+int 21h
+
+pwelcome proc
+mov ah, 09h
+mov bl, 10
+mov cx, 75
+int 10h
+mov dx, offset welcome
+mov ah, 9
+int 21h
+ret
+pwelcome endp
+
+
+enterkey proc
+mov dx, 10
+mov ah, 2
+int 21h
+mov dx, 13
+mov ah, 2
+int 21h
+ret					                ; start new line
+enterkey endp
+
+
+printborline proc 
+PRINT_COLORED_STRING borderline,9
+ret
+printborline endp
+
+
+printborline2 proc
+PRINT_COLORED_STRING borderline2,9
+ret
+printborline2 endp
+
+
+printborder proc
+PRINT_COLORED_STRING border,9
+ret
+printborder endp
+
+
+printbwrow proc
+PRINT_COLORED_STRING bwrow,4
+ret
+printbwrow endp
+
+printboard proc
+mov ax, 0003h 
+int 10h
+
+call enterkey 
+call pwelcome
+call enterkey
+
+call printborder
+call enterkey
+call printborline
+
+PRINT_SHOW_BOARD row1a
+call printborline
+
+
+PRINT_SHOW_BOARD row2a
+call printborline
+
+
+PRINT_SHOW_BOARD row3a
+
+ret
+printboard endp
+
+printsolboard proc
+mov ax, 0003h
+int 10h
+
+call enterkey
+call pwelcome
+
+call enterkey
+call printborder
+call enterkey
+call printborline
+
+PRINT_SHOW_BOARD sol1a
+call printborline
+
+PRINT_SHOW_BOARD sol2a
+call printborline
+
+PRINT_SHOW_BOARD sol3a
+
+ret
+printsolboard endp
+
+
+validateSudoku proc
+    mov al, userInputs[0]
+    cmp al, '3'          
+    jne invalidSolution
+
+    mov al, userInputs[1]
+    cmp al, '3'         
+    jne invalidSolution
+
+    mov al, userInputs[2]
+    cmp al, '2'     
+    jne invalidSolution
+
+    mov al, userInputs[3]
+    cmp al, '3'      
+    jne invalidSolution
+
+    mov dx, offset validMsg
+    jmp validationEnd
+
+invalidSolution:
+    mov dx, offset invalidMsg
+
+validationEnd:
+    mov ah, 09h
+    int 21h
+    ret
+validateSudoku endp
+ENDM    
+
 end main
