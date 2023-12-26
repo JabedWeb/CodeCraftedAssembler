@@ -86,10 +86,6 @@ call enterkey
 call enterkey
 call enterkey
 call enterkey
-mov ah, 09h
-mov bl, 10
-mov cx, 67			        ; set color
-int 10h
 mov dx, offset again
 mov ah, 9
 int 21h
@@ -97,14 +93,6 @@ mov ah, 1
 int 21h
 cmp al, 13
 je solquit
-mov ah, 2
-mov bh, 0
-mov dl, 0
-mov dh, 23
-int 10h
-mov dx, offset space
-mov ah, 9
-int 21h
 jmp ask1
 
 solquit:
@@ -115,10 +103,6 @@ call enterkey
 
 call validateSudoku
 
-mov ah, 09h
-mov bl, 10
-mov cx, 45				; set color 
-int 10h
 mov dx, offset toquit
 mov ah, 9
 int 21h
@@ -130,10 +114,6 @@ mov ah, 4ch
 int 21h
 
 pwelcome proc
-mov ah, 09h
-mov bl, 10
-mov cx, 75
-int 10h
 mov dx, offset welcome
 mov ah, 9
 int 21h
@@ -241,10 +221,19 @@ validateSudoku proc
     cmp al, '3'      
     jne invalidSolution
 
+    mov ah, 09h
+    mov bl, 10
+    mov cx, 32				; set color 
+    int 10h
+;next instruction will be colored
     mov dx, offset validMsg
     jmp validationEnd
 
 invalidSolution:
+    mov ah, 09h
+    mov bl, 10
+    mov cx, 26				; set color 
+    int 10h
     mov dx, offset invalidMsg
 
 validationEnd:
